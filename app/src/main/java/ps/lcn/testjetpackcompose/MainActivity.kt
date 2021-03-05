@@ -4,8 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,9 +16,7 @@ import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,10 +27,13 @@ import kotlin.random.Random
 
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import dev.chrisbanes.accompanist.glide.GlideImage
 import kotlin.random.nextInt
 
+@ExperimentalFoundationApi
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,11 +163,13 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     private fun TextRow(item: TextListItem, modifier: Modifier, showDivider: Boolean) {
-        Box(Modifier.clickable {
-            Toast.makeText(this, "Text ${item.column} Clicked", Toast.LENGTH_SHORT).show()
-        }) {
-            Text(text = "This is text item ${item.column} ha ha ha ha!", modifier = modifier, style = typography.body2, fontSize = item.fontSize.sp)
-        }
+        Text(
+            text = "This is text item ${item.column} ha ha ha ha!",
+            modifier = modifier.combinedClickable {
+                Toast.makeText(this@MainActivity, "Text ${item.column} Clicked", Toast.LENGTH_SHORT).show()
+            },
+            style = typography.body2,
+            fontSize = item.fontSize.sp)
         if (showDivider) {
             Divider(thickness = 0.5.dp, color = Purple200)
         }
@@ -175,27 +177,29 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     private fun ImageRow(item: ImageListItem, verDividerModifier: Modifier, horDividerModifier: Modifier) {
-        val imageModifier = Modifier
-            .width(item.imageW.dp)
-            .height(item.imageH.dp)
-            .clip(RoundedCornerShape(item.corner))
+        val shape = RoundedCornerShape(item.corner)
         Spacer(modifier = verDividerModifier)
         LazyRow(content = {
             repeat(item.rowCount) { rowIndex ->
                 item {
-                    Box(Modifier.clickable {
-                        Toast.makeText(this@MainActivity, "Image ${item.column}:$rowIndex Clicked", Toast.LENGTH_SHORT).show() }
-                    ) {
-                        GlideImage(
-                            data = item.imageResList[rowIndex],
-                            contentDescription = "",
-                            modifier = imageModifier,
-                            contentScale = ContentScale.Crop,
-                            fadeIn = true
-                        ) {}
-//                        Image(image, "", imageModifier, contentScale = ContentScale.Crop)
-                    }
-                    if (rowIndex <= item.rowCount - 1) {
+                    GlideImage(
+                        data = item.imageResList[rowIndex],
+                        contentDescription = "",
+                        modifier = Modifier
+                            .width(item.imageW.dp)
+                            .height(item.imageH.dp)
+                            .padding(6.dp)
+                            .shadow(3.dp, shape)
+                            .clip(shape)
+                            .background(Color.White)
+                            .clickable {
+                                Toast.makeText(this@MainActivity, "Image ${item.column}:$rowIndex Clicked", Toast.LENGTH_SHORT).show()
+                            },
+                        contentScale = ContentScale.Crop,
+                        fadeIn = true
+                    ) {}
+//                    Image(image, "", imageModifier, contentScale = ContentScale.Crop)
+                    if (rowIndex < item.rowCount - 1) {
                         Spacer(modifier = horDividerModifier)
                     }
                 }
